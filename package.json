@@ -1,0 +1,27 @@
+{
+  "name": "codepedia-api",
+  "version": "1.0.0",
+  "description": "The API to be used by codepedia.",
+  "main": "src/server.ts",
+  "scripts": {
+    "start": "tsx watch src/server.ts"
+  },
+  "keywords": [
+    "codepedia",
+    "api"
+  ],
+  "author": "muanlartins",
+  "license": "MIT",
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.670.0",
+    "@aws-sdk/util-dynamodb": "^3.670.0",
+    "codepedia-types": "^1.0.0",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.1",
+    "tsx": "^4.19.1",
+    "typescript": "^5.6.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.7.5"
+  }
+}
