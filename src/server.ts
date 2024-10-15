@@ -5,10 +5,10 @@ import { IElement } from "codepedia-types/interfaces";
 import { randomUUID } from 'crypto';
 import { DynamoDB } from '@aws-sdk/client-dynamodb';
 
-export const app = express();
+const app = express();
 dotenv.config();
 
-export const dynamo = new DynamoDB({ 
+const dynamo = new DynamoDB({ 
   credentials: {
     accessKeyId: process.env.ACCESS_KEY_ID!,
     secretAccessKey: process.env.SECRET_ACCESS_KEY!
@@ -104,4 +104,6 @@ app.delete('/', async (req, res) => {
 
 app.listen(process.env.PORT!, () => {  
   console.log(`Example app listening on port ${process.env.PORT!}`)
-})
+});
+
+export { app };

@@ -6,4 +6,4 @@ The API to be used by codepedia.
 
 ## Deploy
 
-`npm run build` then `zip -r dist.zip .` and deploy zip to lambda
+`sh build.sh` and deploy zip to lambda
