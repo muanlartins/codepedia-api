@@ -1,4 +1,5 @@
 import express from 'express';
+import cors from 'cors';
 import dotenv from 'dotenv';
 import { marshall, unmarshall } from '@aws-sdk/util-dynamodb';
 import { IElement } from "codepedia-types/interfaces";
@@ -6,7 +7,16 @@ import { randomUUID } from 'crypto';
 import { DynamoDB } from '@aws-sdk/client-dynamodb';
 
 const app = express();
+app.use(cors());
+app.use(express.json());
 dotenv.config();
+
+app.use((req, res, next) => {
+  if (req.headers.authorization !== process.env.PASSWORD!)
+    res.status(400).send("Wrong password");
+  else
+    next();
+});
 
 const dynamo = new DynamoDB({ 
   credentials: {
@@ -15,8 +25,6 @@ const dynamo = new DynamoDB({
   },
   region: process.env.REGION! 
 });
-
-app.use(express.json());
 
 app.get('/', async (req, res) => {
   const params = {
