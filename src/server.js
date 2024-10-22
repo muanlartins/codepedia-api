@@ -4,15 +4,16 @@ import dotenv from 'dotenv';
 import { marshall, unmarshall } from '@aws-sdk/util-dynamodb';
 import { randomUUID } from 'crypto';
 import { DynamoDB } from '@aws-sdk/client-dynamodb';
+import { ElementType } from 'codepedia-types/enums/index.js';
 const app = express();
 app.use(cors());
 app.use(express.json());
 dotenv.config();
 app.use((req, res, next) => {
-    if (req.headers.authorization !== process.env.PASSWORD)
-        res.status(400).send("Wrong password");
-    else
+    if (req.method === "GET" || req.headers.authorization === process.env.PASSWORD)
         next();
+    else
+        res.status(400).send("Wrong password");
 });
 const dynamo = new DynamoDB({
     credentials: {
@@ -31,6 +32,8 @@ app.get('/', async (req, res) => {
 app.post('/', async (req, res) => {
     const data = req.body;
     data.id = randomUUID();
+    data.createdAt = new Date().toISOString();
+    data.updatedAt = new Date().toISOString();
     const params = {
         TableName: 'data',
         Item: marshall(data)
@@ -40,13 +43,14 @@ app.post('/', async (req, res) => {
 });
 app.put('/', async (req, res) => {
     const data = req.body;
-    let updateExpression = 'set #title = :title, #tags = :tags, #languages = :languages, #codes = :codes, #type = :type';
+    let updateExpression = 'set #title = :title, #tags = :tags, #languages = :languages, #codes = :codes, #type = :type, #updatedAt = :updatedAt';
     const attributeValues = {
         ":title": data.title,
         ":tags": data.tags,
         ":languages": data.languages,
         ":codes": data.codes,
         ":type": data.type,
+        ":updatedAt": new Date().toISOString(),
     };
     const attributeNames = {
         "#title": "title",
@@ -54,8 +58,9 @@ app.put('/', async (req, res) => {
         "#languages": "languages",
         "#codes": "codes",
         "#type": "type",
+        "#updatedAt": "updatedAt",
     };
-    if (data.link) {
+    if (data.type === ElementType.solution) {
         updateExpression += ', #link = :link';
         attributeValues[":link"] = data.link;
         attributeNames["#link"] = "link";

@@ -2,9 +2,10 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { marshall, unmarshall } from '@aws-sdk/util-dynamodb';
-import { IElement } from "codepedia-types/interfaces";
+import { Element } from "codepedia-types/interfaces";
 import { randomUUID } from 'crypto';
 import { DynamoDB } from '@aws-sdk/client-dynamodb';
+import { ElementType } from 'codepedia-types/enums/index.js';
 
 const app = express();
 app.use(cors());
@@ -12,10 +13,10 @@ app.use(express.json());
 dotenv.config();
 
 app.use((req, res, next) => {
-  if (req.headers.authorization !== process.env.PASSWORD!)
-    res.status(400).send("Wrong password");
-  else
+  if (req.method === "GET" || req.headers.authorization === process.env.PASSWORD!)
     next();
+  else
+    res.status(400).send("Wrong password");
 });
 
 const dynamo = new DynamoDB({ 
@@ -37,9 +38,11 @@ app.get('/', async (req, res) => {
 });
 
 app.post('/', async (req, res) => {
-  const data: IElement = req.body;
+  const data: Element = req.body;
 
   data.id = randomUUID();
+  data.createdAt = new Date().toISOString();
+  data.updatedAt = new Date().toISOString();
 
   const params = {
     TableName: 'data',
@@ -53,9 +56,9 @@ app.post('/', async (req, res) => {
 
 
 app.put('/', async (req, res) => {
-  const data: IElement = req.body;
+  const data: Element = req.body;
 
-  let updateExpression = 'set #title = :title, #tags = :tags, #languages = :languages, #codes = :codes, #type = :type';
+  let updateExpression = 'set #title = :title, #tags = :tags, #languages = :languages, #codes = :codes, #type = :type, #updatedAt = :updatedAt';
 
   const attributeValues: { [key: `:${string}`]: any } = {
     ":title": data.title,
@@ -63,6 +66,7 @@ app.put('/', async (req, res) => {
     ":languages": data.languages,
     ":codes": data.codes,
     ":type": data.type,
+    ":updatedAt": new Date().toISOString(),
   };
 
   const attributeNames: { [key: `#${string}`]: any} = {
@@ -71,9 +75,10 @@ app.put('/', async (req, res) => {
     "#languages": "languages",
     "#codes": "codes",
     "#type": "type",
+    "#updatedAt": "updatedAt",
   };
 
-  if (data.link) {
+  if (data.type === ElementType.solution) {
     updateExpression += ', #link = :link';
     attributeValues[":link"] = data.link;
     attributeNames["#link"] = "link";
@@ -96,7 +101,7 @@ app.put('/', async (req, res) => {
 
 
 app.delete('/', async (req, res) => {
-  const data: IElement = req.body;
+  const data: Element = req.body;
 
   const params = {
     TableName: 'data',

@@ -6,4 +6,4 @@ The API to be used by codepedia.
 
 ## Deploy
 
-`sh build.sh` and deploy zip to lambda
+`./build.sh` and deploy zip to lambda
